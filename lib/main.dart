@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:device_apps/device_apps.dart';
 import 'package:flutter/material.dart';
 import 'package:installed_apps/app_info.dart';
@@ -7,6 +9,7 @@ import 'package:flutter_switch/flutter_switch.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:get/instance_manager.dart';
 import 'package:get/state_manager.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 void main() {
   runApp(const MyApp());
@@ -25,11 +28,24 @@ class _MyAppState extends State<MyApp> {
   bool _isLoading = true;
   bool light = true;
   int index = 0;
+  String _key = "key";
 
   @override
   void initState() {
     super.initState();
     _fetchApps();
+    get_data();
+  }
+
+  void get_data() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    List<dynamic> dynamicList = jsonDecode(prefs.getString(_key)!);
+    _apps_lock_Status = dynamicList.map((item) => item as bool).toList();
+  }
+
+  void save_data() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    prefs.setString(_key, json.encode(_apps_lock_Status));
   }
 
   void _fetchApps() async {
@@ -85,6 +101,7 @@ class _MyAppState extends State<MyApp> {
                     // This is called when the user toggles the switch.
                     setState(() {
                       _apps_lock_Status[index] = value;
+                      save_data();
                       light = value;
                     });
                   },
